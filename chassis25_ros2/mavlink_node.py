@@ -6,6 +6,7 @@ from .msg_define import *
 from rclpy.node import Node
 # from geometry_msgs.msg import Pose2D
 from std_msgs.msg import UInt64
+from sensor_msgs.msg import Joy
 from threading import Thread
 import rclpy
 import os
@@ -34,6 +35,15 @@ def mav_heartbeat2u64(msgin:MAVLink_heartbeat_message)->UInt64:
     msgout =UInt64()
     msgout.data=msgin.time
     return msgout
+def joy_to_mav_speed(msgin:Joy)->MAVLink_speed_message:
+    Kx=1.0
+    Ky=1.0
+    Kz=1.0
+    x_val = Kx*msgin.axes[1]
+    y_val = Ky*msgin.axes[0]
+    z_val = Kz*msgin.axes[3]
+    # print(f'x:{x_val},y:{y_val},z:{z_val}')
+    return MAVLink_speed_message(x_val,y_val,z_val)
 
 class Mav_ros_bridge(Node):
     def __init__(self,name:str):
@@ -139,7 +149,10 @@ def main():
                               'chassis_time',
                               mav_heartbeat2u64
                               )
-
+    bridge_node.add_topic2mav(Joy,
+                              'joy',
+                              joy_to_mav_speed
+                              )
     rclpy.spin(bridge_node)
     rclpy.shutdown()
         #connetion = mavutil.mavlink_connection('/dev/ttyUSB0',baud=115200,dialect='')

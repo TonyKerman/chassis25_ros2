@@ -13,12 +13,20 @@ def generate_launch_description():
     ld = LaunchDescription()
     
 
-
     mav_ros_bridge = Node(
         package=package_name,
         executable='mav_ros_bridge',
         name='mav_ros_bridge'
     )
 
+    joy_node=Node(
+        package='joy', executable='joy_node', name='joy_node',
+        parameters=[{
+            'device_id': 0,
+            'deadzone': 0.3,
+            'autorepeat_rate': 20.0,
+        }])
+
     ld.add_action(mav_ros_bridge)
+    ld.add_action(joy_node)
     return ld
